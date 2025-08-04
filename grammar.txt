@@ -1,0 +1,5 @@
+program -> `function`
+function -> fn main() -> `identifier` `block`
+block -> { `statement` }
+statement -> `expression`;
+expression -> return `number`;

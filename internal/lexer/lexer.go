@@ -30,7 +30,8 @@ type Lexer struct {
 
 func NewLexer(src []rune) *Lexer {
 	return &Lexer{
-		src: src,
+		src:  src,
+		line: 1,
 	}
 }
 
@@ -51,7 +52,7 @@ func (l *Lexer) Tokenize() (tokens []token.Token, err error) {
 
 func (l *Lexer) scanToken() (token.Token, error) {
 	ch := l.src[l.pos]
-	scope := scope.Scope{Start: l.pos, End: l.pos}
+	scope := scope.Scope{Start: l.pos, End: l.pos, Line: l.line}
 	l.pos++
 
 	switch ch {
@@ -158,7 +159,7 @@ func (l *Lexer) expectNext(options ...ExpectedInfo) (token.Token, bool) {
 	for _, v := range options {
 		if next == v.Ch {
 			l.pos++
-			return token.Token{Type: v.TokType, Scope: scope.Scope{Start: l.pos - 2, End: l.pos - 1}}, true
+			return token.Token{Type: v.TokType, Scope: scope.Scope{Start: l.pos - 2, End: l.pos - 1, Line: l.line}}, true
 		}
 	}
 
@@ -170,6 +171,7 @@ func (l *Lexer) skipOneLineComment() {
 		l.pos++
 	}
 	l.pos++
+	l.line++
 }
 
 func (l *Lexer) skipMultiLineComment() {
@@ -187,7 +189,7 @@ func (l *Lexer) skipMultiLineComment() {
 
 func (l *Lexer) scanIdentifier(scopeStart int) (token.Token, error) {
 	if l.pos >= len(l.src) {
-		return token.Token{Type: token.Identifier, Scope: scope.Scope{Start: scopeStart, End: scopeStart}}, nil
+		return token.Token{Type: token.Identifier, Scope: scope.Scope{Start: scopeStart, End: scopeStart, Line: l.line}}, nil
 	}
 	ch := l.src[l.pos]
 
@@ -199,12 +201,12 @@ func (l *Lexer) scanIdentifier(scopeStart int) (token.Token, error) {
 		l.pos++
 	}
 
-	return token.Token{Type: token.Identifier, Scope: scope.Scope{Start: scopeStart, End: l.pos - 1}}, nil
+	return token.Token{Type: token.Identifier, Scope: scope.Scope{Start: scopeStart, End: l.pos - 1, Line: l.line}}, nil
 }
 
 func (l *Lexer) scanNumber(scopeStart int) (token.Token, error) {
 	if l.pos >= len(l.src) {
-		return token.Token{Type: token.Identifier, Scope: scope.Scope{Start: scopeStart, End: scopeStart}}, nil
+		return token.Token{Type: token.Identifier, Scope: scope.Scope{Start: scopeStart, End: scopeStart, Line: l.line}}, nil
 	}
 	ch := l.src[l.pos]
 
@@ -216,7 +218,7 @@ func (l *Lexer) scanNumber(scopeStart int) (token.Token, error) {
 		l.pos++
 	}
 
-	return token.Token{Type: token.IntegerNumber, Scope: scope.Scope{Start: scopeStart, End: l.pos - 1}}, nil
+	return token.Token{Type: token.IntegerNumber, Scope: scope.Scope{Start: scopeStart, End: l.pos - 1, Line: l.line}}, nil
 }
 
 func (l *Lexer) checkKeyword(tok token.Token) (token.Token, bool) {

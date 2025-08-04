@@ -1,10 +1,8 @@
 package scope
 
+// Start and End fields are counted as number of runes from source beginning
 type Scope struct {
 	Start int
 	End   int
-}
-
-func NewScope(start, end int) Scope {
-	return Scope{start, end}
+	Line  int
 }

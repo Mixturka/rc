@@ -19,7 +19,12 @@ const (
 )
 
 func (le LexerError) Error() string {
-	return "" // TODO: add proper error output
+	switch le {
+	case UnexpectedSymbol:
+		return "unexpected symbol found"
+	}
+
+	return ""
 }
 
 type Lexer struct {
@@ -46,6 +51,10 @@ func (l *Lexer) Tokenize() (tokens []token.Token, err error) {
 			tokens = append(tokens, tok)
 		}
 	}
+	tokens = append(tokens, token.Token{
+		Type:  token.Eof,
+		Scope: scope.Scope{Start: len(l.src), End: len(l.src), Line: l.line},
+	})
 
 	return tokens, nil
 }

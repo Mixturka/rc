@@ -12,6 +12,7 @@ const (
 	Arrow                        // ->
 	Colon                        // :
 	Semicolon                    // ;
+	Comma                        // ,
 	Star                         // *
 	Minus                        // -
 	Plus                         // +
@@ -30,9 +31,25 @@ const (
 	IntegerNumber
 	Fn
 	Return
+	Eof
 )
 
 type Token struct {
 	Type  TokenType
 	Scope scope.Scope
+}
+
+func (tt TokenType) BindingPower() int {
+	switch tt {
+	case Plus:
+		fallthrough
+	case Minus:
+		return 1
+	case Slash:
+		fallthrough
+	case Star:
+		return 2
+	default:
+		return 0
+	}
 }

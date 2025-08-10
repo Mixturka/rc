@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/Mixturka/rc/internal/codegen"
 	"github.com/Mixturka/rc/internal/erremitter"
 	"github.com/Mixturka/rc/internal/lexer"
 	"github.com/Mixturka/rc/internal/parser"
@@ -23,8 +24,12 @@ func main() {
 
 	ast := p.Parse()
 	var sb strings.Builder
-	ast.Function.Print(src, &sb, 0)
+	// ast.Function.Print(src, &sb, 0)
+
+	// fmt.Println(sb.String())
+	// fmt.Println(em.Errors())
+	cg := codegen.NewCodeGenerator(&sb, src)
+	cg.EmitProgram(*ast)
 
 	fmt.Println(sb.String())
-	// fmt.Println(em.Errors())
 }

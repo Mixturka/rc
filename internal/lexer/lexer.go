@@ -123,6 +123,8 @@ func (l *Lexer) scanToken() (token.Token, error) {
 			return tok, nil
 		}
 		return token.Token{Type: token.Not, Scope: scope}, nil
+	case '~':
+		return token.Token{Type: token.Tilde, Scope: scope}, nil
 	case '\n':
 		l.line++
 		return token.Token{}, NewLineSkipped

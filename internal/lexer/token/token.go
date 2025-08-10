@@ -27,6 +27,7 @@ const (
 	Equals                       // ==
 	NotEquals                    // !=
 	Not                          // !
+	Tilde                        // ~
 	Identifier
 	IntegerNumber
 	Fn

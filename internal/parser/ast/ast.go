@@ -19,6 +19,7 @@ type PrintableNode interface {
 type Node interface {
 	PrintableNode
 	ScopableNode
+	Accept(emitter CodeEmitter)
 }
 
 type Stmt interface {
@@ -27,10 +28,6 @@ type Stmt interface {
 
 type Expr interface {
 	Node
-}
-
-type DummyNode struct {
-	token token.Token
 }
 
 type Program struct {
@@ -50,17 +47,12 @@ type ConstExpr struct {
 	Value token.Token
 }
 
-func (d *DummyNode) Print(src string, sb *strings.Builder, nestingLevel int) {
-	writeIndent(sb, nestingLevel)
-	sb.WriteString("Unresolved\n")
+func (p Program) Accept(emitter CodeEmitter) {
+	emitter.EmitProgram(p)
 }
 
-func (d *DummyNode) ScopeStart() int {
-	return d.token.Scope.Start
-}
-
-func (d *DummyNode) ScopeEnd() int {
-	return d.token.Scope.Start
+func (f Func) Accept(emitter CodeEmitter) {
+	emitter.EmitFunc(f)
 }
 
 func (f *Func) Print(src string, sb *strings.Builder, nestingLevel int) {
@@ -94,6 +86,10 @@ func (f *Func) ScopeEnd() int {
 	return f.Body.ScopeEnd() + 1 // +1 is for '}'
 }
 
+func (rs ReturnStmt) Accept(emitter CodeEmitter) {
+	emitter.EmitReturnStmt(rs)
+}
+
 func (rs *ReturnStmt) Print(src string, sb *strings.Builder, nestingLevel int) {
 	writeIndent(sb, nestingLevel)
 	sb.WriteString("return ")
@@ -108,6 +104,10 @@ func (rs *ReturnStmt) ScopeStart() int {
 
 func (rs *ReturnStmt) ScopeEnd() int {
 	return rs.Expr.ScopeEnd()
+}
+
+func (ce ConstExpr) Accept(emitter CodeEmitter) {
+	emitter.EmitConstExpr(ce)
 }
 
 func (ce *ConstExpr) Print(src string, sb *strings.Builder, nestingLevel int) {
@@ -126,4 +126,11 @@ func writeIndent(sb *strings.Builder, nestingLevel int) {
 	for range nestingLevel {
 		sb.WriteString("  ")
 	}
+}
+
+type CodeEmitter interface {
+	EmitProgram(program Program)
+	EmitFunc(fn Func)
+	EmitReturnStmt(stmt ReturnStmt)
+	EmitConstExpr(expr ConstExpr)
 }

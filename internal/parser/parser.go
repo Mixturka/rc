@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"log"
+
 	"github.com/Mixturka/rc/internal/erremitter"
 	"github.com/Mixturka/rc/internal/lexer/token"
 	"github.com/Mixturka/rc/internal/parser/ast"
@@ -10,9 +12,13 @@ var (
 	funcSignSyncSet = map[token.TokenType]struct{}{
 		token.LeftBrace:  {},
 		token.RightBrace: {},
+		token.Arrow:      {},
+		token.Semicolon:  {},
+		token.LeftParen:  {},
 	}
 	stmtSyncSet = map[token.TokenType]struct{}{
-		token.Semicolon: {},
+		token.Semicolon:  {},
+		token.RightBrace: {},
 	}
 	exprSyncSet = map[token.TokenType]struct{}{
 		token.Comma:      {},
@@ -50,34 +56,35 @@ func (p *Parser) ParseFunction() *ast.Func {
 	defer p.popSyncStack()
 
 	if _, ok := p.expectAndConsumeToken(token.Fn); !ok {
-		p.skipAndReportErr("expected 'fn' keyword")
+		log.Fatalf("expected 'fn' keyword")
 	}
 	var funcName token.Token
 	var ok bool
 	funcName, ok = p.expectAndConsumeToken(token.Identifier)
 	if !ok {
-		p.skipAndReportErr("expected function name")
+		log.Fatalf("expected function name")
 	}
 
 	if _, ok := p.expectAndConsumeToken(token.LeftParen); !ok {
-		p.skipAndReportErr("expected '('")
+		log.Fatalf("expected '('")
 	}
 	if _, ok := p.expectAndConsumeToken(token.RightParen); !ok {
-		p.skipAndReportErr("expected ')'")
+		log.Fatalf("expected ')'")
 	}
 	if _, ok := p.expectAndConsumeToken(token.Arrow); !ok {
-		p.skipAndReportErr("expected '->'")
+		log.Fatalf("expected '->'")
 	}
 	if _, ok := p.expectAndConsumeToken(token.Identifier); !ok {
-		p.skipAndReportErr("expected return type")
+		log.Fatalf("expected return type")
 	}
 	if _, ok := p.expectAndConsumeToken(token.LeftBrace); !ok {
-		p.skipAndReportErr("expected '{' before function body")
+		log.Fatalf("expected '{' before function body")
 	}
 
 	stmt := p.parseStatement()
+
 	if _, ok := p.expectAndConsumeToken(token.RightBrace); !ok {
-		p.skipAndReportErr("expected '}'")
+		log.Fatalf("expected '}'")
 	}
 
 	return &ast.Func{
@@ -91,13 +98,13 @@ func (p *Parser) parseStatement() ast.Stmt {
 	defer p.popSyncStack()
 
 	if _, ok := p.expectAndConsumeToken(token.Return); !ok {
-		p.skipAndReportErr("expected 'return'")
+		log.Fatalf("expected 'return'")
 	}
 
 	expr := p.parseExpression()
 
 	if _, ok := p.expectAndConsumeToken(token.Semicolon); !ok {
-		p.skipAndReportErr("expected ';' in the end of statement")
+		log.Fatalf("expected ';' in the end of statement")
 	}
 
 	return &ast.ReturnStmt{Expr: expr}
@@ -110,7 +117,7 @@ func (p *Parser) parseExpression() ast.Expr {
 	var constant token.Token
 	constant, ok := p.expectAndConsumeToken(token.IntegerNumber)
 	if !ok {
-		p.skipAndReportErr("expected integer")
+		log.Fatalf("expected integer")
 	}
 
 	return &ast.ConstExpr{
@@ -119,6 +126,10 @@ func (p *Parser) parseExpression() ast.Expr {
 }
 
 func (p *Parser) expectAndConsumeToken(tok token.TokenType) (token.Token, bool) {
+	if p.tokens[p.pos].Type == token.Eof {
+		return token.Token{}, false
+	}
+
 	if p.inErr {
 		if len(p.currentSyncStack) <= 0 {
 			return token.Token{}, false
@@ -127,7 +138,6 @@ func (p *Parser) expectAndConsumeToken(tok token.TokenType) (token.Token, bool) 
 		syncSet := p.currentSyncStack[len(p.currentSyncStack)-1]
 		if _, ok := syncSet[p.tokens[p.pos].Type]; ok {
 			p.inErr = false
-			p.pos++
 		} else {
 			p.pos++
 		}
@@ -141,21 +151,6 @@ func (p *Parser) expectAndConsumeToken(tok token.TokenType) (token.Token, bool) 
 
 	p.pos++
 	return p.tokens[p.pos-1], true
-}
-
-func (p *Parser) skipAndReportErr(message string) {
-	p.inErr = true
-	errScopeStart := p.tokens[p.pos].Scope.Start
-	syncSet := p.currentSyncStack[len(p.currentSyncStack)-1]
-
-	for ; p.pos < len(p.tokens); p.pos++ {
-		if _, ok := syncSet[p.tokens[p.pos].Type]; ok {
-			break
-		}
-	}
-
-	errScopeEnd := p.tokens[p.pos].Scope.End
-	p.errEmitter.AddErr(message, errScopeStart, errScopeEnd)
 }
 
 func (p *Parser) pushSyncStack(syncSet map[token.TokenType]struct{}) {

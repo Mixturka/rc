@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	src := "main() -> i32 { return 23; }"
+	src := "fn main() -> i32 { return 23; }"
 	l := lexer.NewLexer([]rune(src))
 	tokens, err := l.Tokenize()
 
@@ -26,5 +26,5 @@ func main() {
 	ast.Function.Print(src, &sb, 0)
 
 	fmt.Println(sb.String())
-	fmt.Println(em.Errors())
+	// fmt.Println(em.Errors())
 }

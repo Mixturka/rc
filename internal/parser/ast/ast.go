@@ -29,6 +29,10 @@ type Expr interface {
 	Node
 }
 
+type DummyNode struct {
+	token token.Token
+}
+
 type Program struct {
 	Function Func
 }
@@ -44,6 +48,19 @@ type ReturnStmt struct {
 
 type ConstExpr struct {
 	Value token.Token
+}
+
+func (d *DummyNode) Print(src string, sb *strings.Builder, nestingLevel int) {
+	writeIndent(sb, nestingLevel)
+	sb.WriteString("Unresolved\n")
+}
+
+func (d *DummyNode) ScopeStart() int {
+	return d.token.Scope.Start
+}
+
+func (d *DummyNode) ScopeEnd() int {
+	return d.token.Scope.Start
 }
 
 func (f *Func) Print(src string, sb *strings.Builder, nestingLevel int) {

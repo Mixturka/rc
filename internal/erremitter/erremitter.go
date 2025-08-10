@@ -6,6 +6,17 @@ const (
 	maxErrors = 20
 )
 
+type ErrScope struct {
+	Start int
+	End   int
+}
+
+type SquiggleScope struct {
+	Start int
+	End   int
+	Lines int
+}
+
 type ErrType int32
 
 var (
@@ -13,9 +24,9 @@ var (
 )
 
 type Err struct {
-	Message string
-	Start   int
-	End     int
+	Message   string
+	ErrScope  ErrScope
+	Squiggles []SquiggleScope
 }
 
 type ErrEmitter struct {
@@ -24,15 +35,15 @@ type ErrEmitter struct {
 
 func NewErrEmitter() ErrEmitter {
 	return ErrEmitter{
-		errors: make([]Err, maxErrors),
+		errors: make([]Err, 0, maxErrors),
 	}
 }
 
-func (ee *ErrEmitter) AddErr(message string, start, end int) error {
+func (ee *ErrEmitter) AddErr(message string, errScope ErrScope, squiggleScopes []SquiggleScope) error {
 	if len(ee.errors) >= maxErrors {
 		return ErrMaxReached
 	}
-	ee.errors = append(ee.errors, Err{message, start, end})
+	ee.errors = append(ee.errors, Err{message, errScope, squiggleScopes})
 
 	return nil
 }

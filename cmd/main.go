@@ -12,15 +12,15 @@ import (
 )
 
 func main() {
-	src := "fn main() -> i32 { return 23; }"
+	src := "fn main() -> i32 { return (~2-23)*3 || 2 + 3; }"
 	l := lexer.NewLexer([]rune(src))
 	tokens, err := l.Tokenize()
-
+	fmt.Println(tokens)
 	if err != nil {
 		log.Fatal("failed to tokenize source")
 	}
 	em := erremitter.NewErrEmitter()
-	p := parser.NewParser(tokens, &em)
+	p := parser.NewParser(tokens, &em, []rune(src))
 
 	ast := p.Parse()
 	var sb strings.Builder

@@ -38,6 +38,23 @@ func (cg *CodeGenerator) EmitFunc(fn ast.Func) {
 	cg.sb.WriteString("}\n")
 }
 
+func (cg *CodeGenerator) EmitUnaryExpr(expr ast.UnaryExpr) {
+	cg.sb.WriteRune('(')
+	cg.sb.WriteString(cg.src[expr.Op.Scope.Start : expr.Op.Scope.End+1])
+	expr.Rhs.Accept(cg)
+	cg.sb.WriteRune(')')
+}
+
+func (cg *CodeGenerator) EmitBinaryExpr(expr ast.BinaryExpr) {
+	cg.sb.WriteRune('(')
+	expr.Lhs.Accept(cg)
+	cg.sb.WriteRune(' ')
+	cg.sb.WriteString(cg.src[expr.Op.Scope.Start : expr.Op.Scope.End+1])
+	cg.sb.WriteRune(' ')
+	expr.Rhs.Accept(cg)
+	cg.sb.WriteRune(')')
+}
+
 func (cg *CodeGenerator) EmitReturnStmt(stmt ast.ReturnStmt) {
 	cg.writeIndent()
 	cg.sb.WriteString("return ")
@@ -46,7 +63,7 @@ func (cg *CodeGenerator) EmitReturnStmt(stmt ast.ReturnStmt) {
 }
 
 func (cg *CodeGenerator) EmitConstExpr(expr ast.ConstExpr) {
-	cg.sb.WriteString(cg.src[expr.Value.Scope.Start:expr.Value.Scope.End])
+	cg.sb.WriteString(cg.src[expr.Value.Scope.Start : expr.Value.Scope.End+1])
 }
 
 func (cg *CodeGenerator) writeIndent() {

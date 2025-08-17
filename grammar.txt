@@ -1,4 +1,8 @@
-program = function
-function = 'fn' name '(' ')' '->' return_type '{' statement ';' '}'
-statement = 'return' expression
-expression = constant
+<program> = <function>
+<function> = 'fn' name '(' ')' '->' return_type '{' <statement> ';' '}'
+<statement> = 'return' <expression>
+<expression> = <factor> | <expression> <binary_op> <expression>
+<factor> = constant | <unary_op> <expression> | '(' <expression> ')'
+unary_op = '~' | '-' | '+' | '!'
+binary_op = '+' | '-' | '*' | '/' | '%' | '&&' | '||' | '==' | '!=' | '<=' | '>=' | '>' |
+            '<'

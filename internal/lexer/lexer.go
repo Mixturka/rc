@@ -85,8 +85,6 @@ func (l *Lexer) scanToken() (token.Token, error) {
 	case '-':
 		if tok, ok := l.expectNext(ExpectedInfo{'>', token.Arrow}, ExpectedInfo{'=', token.MinusAssign}, ExpectedInfo{'-', token.MinusMinus}); ok {
 			return tok, nil
-		} else if l.pos < len(l.src) && unicode.IsDigit(l.src[l.pos+1]) {
-			return l.scanNumber(scope.Start)
 		}
 
 		return token.Token{Type: token.Minus, Scope: scope}, nil
@@ -125,6 +123,28 @@ func (l *Lexer) scanToken() (token.Token, error) {
 		return token.Token{Type: token.Not, Scope: scope}, nil
 	case '~':
 		return token.Token{Type: token.Tilde, Scope: scope}, nil
+	case '%':
+		return token.Token{Type: token.Percent, Scope: scope}, nil
+	case '&':
+		if tok, ok := l.expectNext(ExpectedInfo{'&', token.AmpersandAmpersand}); ok {
+			return tok, nil
+		}
+		return token.Token{Type: token.Ampersand, Scope: scope}, nil
+	case '|':
+		if tok, ok := l.expectNext(ExpectedInfo{'|', token.BarBar}); ok {
+			return tok, nil
+		}
+		return token.Token{Type: token.Bar, Scope: scope}, nil
+	case '>':
+		if tok, ok := l.expectNext(ExpectedInfo{'=', token.GreaterEqual}); ok {
+			return tok, nil
+		}
+		return token.Token{Type: token.Greater, Scope: scope}, nil
+	case '<':
+		if tok, ok := l.expectNext(ExpectedInfo{'=', token.LessEqual}); ok {
+			return tok, nil
+		}
+		return token.Token{Type: token.Less, Scope: scope}, nil
 	case '\n':
 		l.line++
 		return token.Token{}, NewLineSkipped
